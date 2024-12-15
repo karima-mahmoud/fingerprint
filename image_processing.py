@@ -24,11 +24,15 @@ def process_image(image):
 
     # 5. Morphological Processing (Closing)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    morph_image = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-    steps.append(("Morphological Processing", morph_image))
+    morph_image_close = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+    steps.append(("Morphological Closing", morph_image_close))
 
-    # 6. Thinning the ridges (Alternative using scikit-image)
-    morph_image_binary = morph_image // 255  # Convert to binary (0 or 1)
+    # 6. Morphological Processing (Opening)
+    morph_image_open = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
+    steps.append(("Morphological Opening", morph_image_open))
+
+    # 7. Thinning the ridges (Alternative using scikit-image)
+    morph_image_binary = morph_image_close // 255  # Convert to binary (0 or 1)
     thinning_image = skeletonize(invert(morph_image_binary)) * 255
     steps.append(("Thinned Image", thinning_image.astype(np.uint8)))
 
