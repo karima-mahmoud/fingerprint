@@ -40,4 +40,4 @@ if query_image is not None:
             st.success(f"Fingerprint matched with dataset image #{index + 1}.")
         else:
             st.error("No match found in the dataset.")
-```
+
