@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from skimage.morphology import skeletonize
 from skimage.util import invert
+import streamlit as st
 
 def process_image(image):
     steps = []
@@ -75,34 +76,34 @@ def match_fingerprint(query_image, dataset_images):
 
     return False, -1
 
-# Example usage
-if __name__ == "__main__":
-    # Load query image and dataset images
-    query_image = cv2.imread("query_fingerprint.jpg")
-    dataset_images = [
-        cv2.imread("fingerprint1.jpg"),
-        cv2.imread("fingerprint2.jpg"),
-        cv2.imread("fingerprint3.jpg")
-    ]
+# Streamlit UI
+st.title("Fingerprint Processing and Matching")
+st.markdown("**Upload a fingerprint image and see the processing steps.**")
 
-    # Preprocess query image
+uploaded_file = st.file_uploader("Upload Query Fingerprint", type=["jpg", "png", "jpeg"])
+dataset_files = st.file_uploader("Upload Dataset Fingerprints (Multiple)", type=["jpg", "png", "jpeg"], accept_multiple_files=True)
+
+if uploaded_file is not None and dataset_files:
+    query_image = cv2.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), cv2.IMREAD_COLOR)
+    dataset_images = [cv2.imdecode(np.frombuffer(f.read(), np.uint8), cv2.IMREAD_COLOR) for f in dataset_files]
+
     steps = process_image(query_image)
-    for step_name, step_image in steps:
-        cv2.imshow(step_name, step_image)
 
-    # Convert the last step (thinned image) to the format used for matching
+    st.subheader("Processing Steps")
+    cols = st.columns(len(steps))
+
+    for col, (step_name, step_image) in zip(cols, steps):
+        with col:
+            st.image(step_image, caption=step_name, use_column_width=True)
+            st.markdown(f"**{step_name}**", unsafe_allow_html=True)
+
     query_preprocessed = steps[-1][1]
-
-    # Preprocess dataset images
     dataset_preprocessed = [process_image(img)[-1][1] for img in dataset_images]
 
-    # Match the query image with the dataset
     match_found, match_index = match_fingerprint(query_preprocessed, dataset_preprocessed)
 
+    st.subheader("Match Results")
     if match_found:
-        print(f"Match found with image index: {match_index}")
+        st.success(f"Match found with dataset image index: {match_index + 1}")
     else:
-        print("No match found.")
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        st.error("No match found.")
