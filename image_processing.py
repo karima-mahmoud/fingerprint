@@ -12,25 +12,48 @@ def process_image(image):
     blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
     steps.append(("Blurred Image", blurred_image))
 
-    # Edge Detection
+    # Edge Detection using Canny
     edges = cv2.Canny(blurred_image, 50, 150)
     steps.append(("Edge Detection", edges))
 
-    # Morphological Processing
+    # Morphological Processing (Closing)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     morph_image = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
     steps.append(("Morphological Processing", morph_image))
 
+    # Contrast Enhancement using Histogram Equalization
+    equalized_image = cv2.equalizeHist(gray_image)
+    steps.append(("Equalized Image", equalized_image))
+
+    # Minutiae Point Extraction (This is a placeholder for actual minutiae extraction method)
+    # Placeholder: In a real scenario, minutiae extraction algorithms would be applied here
+    minutiae_points = extract_minutiae(equalized_image)
+    steps.append(("Minutiae Points", minutiae_points))
+
     return steps
+
+def extract_minutiae(image):
+    # Placeholder function to simulate minutiae point extraction
+    # In a real-world scenario, a specific algorithm for minutiae extraction should be used
+    return np.random.rand(5, 2)  # Simulated minutiae points
 
 def match_fingerprint(query_image, dataset_images):
     orb = cv2.ORB_create()
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
+    # Preprocess the query image
+    query_steps = process_image(query_image)
+    query_image = query_steps[-1][1]  # Use the final processed image (equalized image)
+
     keypoints_query, descriptors_query = orb.detectAndCompute(query_image, None)
 
     for idx, dataset_image in enumerate(dataset_images):
+        dataset_steps = process_image(dataset_image)
+        dataset_image = dataset_steps[-1][1]  # Use the final processed image (equalized image)
+
         keypoints_dataset, descriptors_dataset = orb.detectAndCompute(dataset_image, None)
+
+        # Match descriptors using BFMatcher
         matches = bf.match(descriptors_query, descriptors_dataset)
         matches = sorted(matches, key=lambda x: x.distance)
 
