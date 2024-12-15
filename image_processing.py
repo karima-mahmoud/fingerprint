@@ -68,34 +68,3 @@ def match_fingerprint(query_image, dataset_images):
 
     return False, -1
 
-# Example usage
-if __name__ == "__main__":
-    # Load query image and dataset images
-    query_image = cv2.imread("query_fingerprint.jpg")
-    dataset_images = [
-        cv2.imread("fingerprint1.jpg"),
-        cv2.imread("fingerprint2.jpg"),
-        cv2.imread("fingerprint3.jpg")
-    ]
-
-    # Preprocess query image
-    steps = process_image(query_image)
-    for step_name, step_image in steps:
-        cv2.imshow(step_name, step_image)
-
-    # Convert the last step (thinned image) to the format used for matching
-    query_preprocessed = steps[-1][1]
-
-    # Preprocess dataset images
-    dataset_preprocessed = [process_image(img)[-1][1] for img in dataset_images]
-
-    # Match the query image with the dataset
-    match_found, match_index = match_fingerprint(query_preprocessed, dataset_preprocessed)
-
-    if match_found:
-        print(f"Match found with image index: {match_index}")
-    else:
-        print("No match found.")
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
