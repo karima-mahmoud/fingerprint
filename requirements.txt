@@ -1,1 +1,6 @@
 streamlit
+OpenCV
+Numpy
+Pandas
+Scikit-learn 
+scikit-image
