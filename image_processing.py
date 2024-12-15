@@ -1,11 +1,3 @@
-pip install streamlit==1.41.1
-pip install opencv-python==4.7.0
-pip install numpy
-pip install scikit-image
-pip install matplotlib
-
-
-
 
 
 import cv2
