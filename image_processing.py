@@ -4,60 +4,98 @@ import numpy as np
 def process_image(image):
     steps = []
 
-    # Convert to grayscale
+    # 1. Convert to grayscale
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     steps.append(("Grayscale Image", gray_image))
 
-    # Apply Gaussian Blur
+    # 2. Apply Gaussian Blur
     blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
     steps.append(("Blurred Image", blurred_image))
 
-    # Edge Detection using Canny
-    edges = cv2.Canny(blurred_image, 50, 150)
+    # 3. Enhance Contrast using Histogram Equalization
+    enhanced_image = cv2.equalizeHist(blurred_image)
+    steps.append(("Contrast Enhanced Image", enhanced_image))
+
+    # 4. Apply Edge Detection (Canny)
+    edges = cv2.Canny(enhanced_image, 50, 150)
     steps.append(("Edge Detection", edges))
 
-    # Morphological Processing (Closing)
+    # 5. Morphological Processing (Closing)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     morph_image = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
     steps.append(("Morphological Processing", morph_image))
 
-    # Contrast Enhancement using Histogram Equalization
-    equalized_image = cv2.equalizeHist(gray_image)
-    steps.append(("Equalized Image", equalized_image))
-
-    # Minutiae Point Extraction (This is a placeholder for actual minutiae extraction method)
-    # Placeholder: In a real scenario, minutiae extraction algorithms would be applied here
-    minutiae_points = extract_minutiae(equalized_image)
-    steps.append(("Minutiae Points", minutiae_points))
+    # 6. Thinning the ridges
+    thinning_image = cv2.ximgproc.thinning(morph_image)
+    steps.append(("Thinned Image", thinning_image))
 
     return steps
 
-def extract_minutiae(image):
-    # Placeholder function to simulate minutiae point extraction
-    # In a real-world scenario, a specific algorithm for minutiae extraction should be used
-    return np.random.rand(5, 2)  # Simulated minutiae points
+def extract_features(image):
+    """Extracts features using ORB and returns keypoints and descriptors."""
+    orb = cv2.ORB_create()
+    keypoints, descriptors = orb.detectAndCompute(image, None)
+    return keypoints, descriptors
 
 def match_fingerprint(query_image, dataset_images):
-    orb = cv2.ORB_create()
+    """Matches a query fingerprint with a dataset of fingerprints."""
+    # Extract features from the query image
+    keypoints_query, descriptors_query = extract_features(query_image)
+    if descriptors_query is None:
+        return False, -1  # No features found in query image
+
+    # Initialize Brute-Force Matcher
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
-    # Preprocess the query image
-    query_steps = process_image(query_image)
-    query_image = query_steps[-1][1]  # Use the final processed image (equalized image)
-
-    keypoints_query, descriptors_query = orb.detectAndCompute(query_image, None)
+    best_match_idx = -1
+    max_good_matches = 0
 
     for idx, dataset_image in enumerate(dataset_images):
-        dataset_steps = process_image(dataset_image)
-        dataset_image = dataset_steps[-1][1]  # Use the final processed image (equalized image)
+        keypoints_dataset, descriptors_dataset = extract_features(dataset_image)
+        if descriptors_dataset is None:
+            continue  # Skip if no features found in the dataset image
 
-        keypoints_dataset, descriptors_dataset = orb.detectAndCompute(dataset_image, None)
-
-        # Match descriptors using BFMatcher
         matches = bf.match(descriptors_query, descriptors_dataset)
-        matches = sorted(matches, key=lambda x: x.distance)
+        good_matches = [m for m in matches if m.distance < 50]  # Distance threshold
 
-        if len(matches) > 10:  # Threshold for a match
-            return True, idx
+        if len(good_matches) > max_good_matches:
+            max_good_matches = len(good_matches)
+            best_match_idx = idx
+
+    # Return the result if sufficient matches are found
+    if max_good_matches > 10:  # Minimum threshold for a match
+        return True, best_match_idx
 
     return False, -1
+
+# Example usage
+if __name__ == "__main__":
+    # Load query image and dataset images
+    query_image = cv2.imread("query_fingerprint.jpg")
+    dataset_images = [
+        cv2.imread("fingerprint1.jpg"),
+        cv2.imread("fingerprint2.jpg"),
+        cv2.imread("fingerprint3.jpg")
+    ]
+
+    # Preprocess query image
+    steps = process_image(query_image)
+    for step_name, step_image in steps:
+        cv2.imshow(step_name, step_image)
+
+    # Convert the last step (thinned image) to the format used for matching
+    query_preprocessed = steps[-1][1]
+
+    # Preprocess dataset images
+    dataset_preprocessed = [process_image(img)[-1][1] for img in dataset_images]
+
+    # Match the query image with the dataset
+    match_found, match_index = match_fingerprint(query_preprocessed, dataset_preprocessed)
+
+    if match_found:
+        print(f"Match found with image index: {match_index}")
+    else:
+        print("No match found.")
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
