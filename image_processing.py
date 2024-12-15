@@ -10,16 +10,16 @@ def process_image(image):
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     steps.append(("Grayscale Image", gray_image))
 
-    # 2. Apply Gaussian Blur
-    blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
-    steps.append(("Blurred Image", blurred_image))
-
-    # 3. Enhance Contrast using Histogram Equalization
-    enhanced_image = cv2.equalizeHist(blurred_image)
+    # 2. Enhance Contrast using Histogram Equalization
+    enhanced_image = cv2.equalizeHist(gray_image)
     steps.append(("Contrast Enhanced Image", enhanced_image))
 
+    # 3. Apply Gaussian Blur
+    blurred_image = cv2.GaussianBlur(enhanced_image, (5, 5), 0)
+    steps.append(("Blurred Image", blurred_image))
+
     # 4. Apply Edge Detection (Canny)
-    edges = cv2.Canny(enhanced_image, 50, 150)
+    edges = cv2.Canny(blurred_image, 50, 150)
     steps.append(("Edge Detection", edges))
 
     # 5. Morphological Processing (Closing)
@@ -27,8 +27,8 @@ def process_image(image):
     morph_image_close = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
     steps.append(("Morphological Closing", morph_image_close))
 
-    # 6. Morphological Processing (Opening)
-    morph_image_open = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
+    # 6. (Optional) Morphological Processing (Opening)
+    morph_image_open = cv2.morphologyEx(morph_image_close, cv2.MORPH_OPEN, kernel)
     steps.append(("Morphological Opening", morph_image_open))
 
     # 7. Thinning the ridges (Alternative using scikit-image)
