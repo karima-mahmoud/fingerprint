@@ -1,19 +1,71 @@
-# 🎈 Blank app template
+# Fingerprint Verification System
 
-A simple Streamlit app template for you to modify!
+A fingerprint verification system that uses OpenCV and Streamlit for preprocessing and matching fingerprints. The system provides a step-by-step visualization of fingerprint processing and matching against a dataset.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+## Features
 
-### How to run it on your own machine
+* Grayscale Conversion
+* Contrast Enhancement
+* Gaussian Blur
+* Edge Detection (Canny)
+* Morphological Processing (Closing and Opening)
+* Feature Extraction and Matching using ORB (Oriented FAST and Rotated BRIEF)
 
-1. Install the requirements
+## Installation
 
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/karima-mahmoud/fingerprint-verification.git
+   cd fingerprint-verification
    ```
-   $ pip install -r requirements.txt
+
+2. Install the required libraries:
+
+   ```bash
+   pip install -r requirements.txt
    ```
 
-2. Run the app
+3. Run the Streamlit app:
 
+   ```bash
+   streamlit run app.py
    ```
-   $ streamlit run streamlit_app.py
-   ```
+
+## Directory Structure
+
+```
+./fingerprint-verification/
+│
+├── app.py                    # Main application file
+├── image_processing.py       # Image processing functions
+├── requirements.txt          # Required libraries
+└── README.md                 # Project documentation (this file)
+```
+
+## Usage
+
+1. **Upload Dataset Images:** Use the sidebar to upload multiple fingerprint images for the dataset.
+2. **Upload Query Image:** Use the sidebar to upload a single query fingerprint image.
+3. **View Processing Steps:** The app will display each step of the fingerprint processing.
+4. **Match Verification:** Click the "Match Query with Dataset" button to check if the query fingerprint matches any in the dataset.
+
+## Processing Steps
+
+* **Grayscale Conversion:** Converts the original image to grayscale.
+* **Contrast Enhancement:** Uses histogram equalization to enhance the contrast.
+* **Gaussian Blur:** Applies a Gaussian blur to reduce noise.
+* **Edge Detection:** Extracts edges using the Canny algorithm.
+* **Morphological Processing:** Removes noise and fills gaps using morphological closing and opening.
+
+## Future Improvements
+
+* Add support for other feature detectors like SIFT or SURF.
+* Implement a more advanced matching algorithm for higher accuracy.
+* Include real-time fingerprint scanning support.
+
+## 🙋‍♂️ Author
+
+**👨‍💻 Karima Mahmoud**  
+📫 karimamahmoudsalem1@gmail.com  
+🐙 GitHub: https://github.com/karima-mahmoud
